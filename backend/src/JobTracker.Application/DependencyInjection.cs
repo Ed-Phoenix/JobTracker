@@ -1,5 +1,6 @@
 using FluentValidation;
 using JobTracker.Application.Applications;
+using JobTracker.Application.Dashboard;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace JobTracker.Application;
@@ -16,6 +17,7 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
         services.AddScoped<IApplicationsService, ApplicationsService>();
+        services.AddScoped<IDashboardService, DashboardService>();
 
         return services;
     }
