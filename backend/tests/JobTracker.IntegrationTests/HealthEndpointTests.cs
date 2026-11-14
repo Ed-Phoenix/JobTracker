@@ -1,17 +1,16 @@
 using System.Net;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace JobTracker.IntegrationTests;
 
 /// <summary>
-/// WebApplicationFactory boots the real API in memory (same Program.cs, same pipeline)
+/// ApiFactory (a WebApplicationFactory) boots the real API in memory (same Program.cs, same pipeline)
 /// and gives us an HttpClient to call it, without opening a network port.
 /// </summary>
-public class HealthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public class HealthEndpointTests : IClassFixture<ApiFactory>
 {
     private readonly HttpClient _client;
 
-    public HealthEndpointTests(WebApplicationFactory<Program> factory)
+    public HealthEndpointTests(ApiFactory factory)
     {
         _client = factory.CreateClient();
     }
