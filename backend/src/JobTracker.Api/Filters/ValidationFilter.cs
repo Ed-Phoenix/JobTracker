@@ -3,6 +3,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace JobTracker.Api.Filters;
 
@@ -22,6 +23,10 @@ public class ValidationFilter : IAsyncActionFilter
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
+        // A fresh dictionary (not context.ModelState): model binding already registered the query
+        // parameters there in PascalCase, and its keys are case-insensitive, so our camelCase would be lost.
+        ModelStateDictionary errors = new();
+
         foreach (object? argument in context.ActionArguments.Values)
         {
             if (argument is null)
@@ -43,13 +48,13 @@ public class ValidationFilter : IAsyncActionFilter
             {
                 // camelCase keys so they match the JSON property names the client sent.
                 string key = JsonNamingPolicy.CamelCase.ConvertName(failure.PropertyName);
-                context.ModelState.AddModelError(key, failure.ErrorMessage);
+                errors.AddModelError(key, failure.ErrorMessage);
             }
         }
 
-        if (!context.ModelState.IsValid)
+        if (!errors.IsValid)
         {
-            context.Result = ((ControllerBase)context.Controller).ValidationProblem(context.ModelState);
+            context.Result = ((ControllerBase)context.Controller).ValidationProblem(errors);
             return;
         }
 
