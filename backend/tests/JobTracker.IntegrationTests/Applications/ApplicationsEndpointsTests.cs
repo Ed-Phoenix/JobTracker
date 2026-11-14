@@ -197,6 +197,49 @@ public class ApplicationsEndpointsTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    // ---------- Delete ----------
+
+    [Fact]
+    public async Task Delete_returns_204_and_removes_the_application_with_its_history()
+    {
+        HttpClient client = await _factory.CreateAuthenticatedClientAsync();
+        ApplicationDetailResponse application = await CreateAsync(client);
+        await ChangeStatusAsync(client, application.Id, ApplicationStatus.HrInterview);
+
+        HttpResponseMessage delete = await client.DeleteAsync($"{Url}/{application.Id}");
+
+        Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync($"{Url}/{application.Id}")).StatusCode);
+        Assert.Equal(0, await CountHistoryRowsAsync(application.Id));
+    }
+
+    [Fact]
+    public async Task Delete_another_users_application_returns_404_and_keeps_it()
+    {
+        HttpClient owner = await _factory.CreateAuthenticatedClientAsync();
+        HttpClient stranger = await _factory.CreateAuthenticatedClientAsync();
+        ApplicationDetailResponse application = await CreateAsync(owner);
+
+        HttpResponseMessage delete = await stranger.DeleteAsync($"{Url}/{application.Id}");
+
+        Assert.Equal(HttpStatusCode.NotFound, delete.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await owner.GetAsync($"{Url}/{application.Id}")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Delete_unknown_or_already_deleted_id_returns_404()
+    {
+        HttpClient client = await _factory.CreateAuthenticatedClientAsync();
+        ApplicationDetailResponse application = await CreateAsync(client);
+        await client.DeleteAsync($"{Url}/{application.Id}");
+
+        HttpResponseMessage deleteAgain = await client.DeleteAsync($"{Url}/{application.Id}");
+        HttpResponseMessage deleteUnknown = await client.DeleteAsync($"{Url}/{Guid.NewGuid()}");
+
+        Assert.Equal(HttpStatusCode.NotFound, deleteAgain.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, deleteUnknown.StatusCode);
+    }
+
     // ---------- List: search, filters, sorting, paging ----------
 
     [Fact]
@@ -347,6 +390,14 @@ public class ApplicationsEndpointsTests
         HttpResponseMessage response = await client.GetAsync($"{Url}?{queryString}");
         response.EnsureSuccessStatusCode();
         return await response.ReadAsync<PagedResult<ApplicationSummaryResponse>>();
+    }
+
+    private async Task<int> CountHistoryRowsAsync(Guid applicationId)
+    {
+        await using AsyncServiceScope scope = _factory.Services.CreateAsyncScope();
+        AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        return await dbContext.StatusChanges.CountAsync(change => change.JobApplicationId == applicationId);
     }
 
     private async Task SetLastActivityAsync(DateTimeOffset lastActivityAt, params Guid[] ids)
