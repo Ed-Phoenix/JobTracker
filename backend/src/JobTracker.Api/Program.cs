@@ -1,5 +1,6 @@
 using JobTracker.Application;
 using JobTracker.Infrastructure;
+using JobTracker.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -20,6 +21,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
+
+// Apply migrations / seed demo data when enabled by configuration.
+await app.Services.InitializeDatabaseAsync();
 
 // HTTP request pipeline: the order of the middleware matters.
 app.UseSerilogRequestLogging();
