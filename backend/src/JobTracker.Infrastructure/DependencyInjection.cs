@@ -84,5 +84,6 @@ public static class DependencyInjection
 
         services.AddScoped<TokenService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IUserPreferences, UserPreferences>();
     }
 }
