@@ -4,6 +4,7 @@ using JobTracker.Api.Filters;
 using JobTracker.Api.Middleware;
 using JobTracker.Api.Services;
 using JobTracker.Application.Abstractions;
+using Microsoft.OpenApi;
 
 namespace JobTracker.Api;
 
@@ -24,7 +25,25 @@ public static class DependencyInjection
             // Enums travel as text ("Remote") instead of numbers (2).
             .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-        services.AddOpenApi();
+        // Declare the Bearer scheme in the OpenAPI document so Scalar shows a field to paste the access token.
+        services.AddOpenApi(options => options.AddDocumentTransformer((document, _, _) =>
+        {
+            document.Components ??= new OpenApiComponents();
+            document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+            document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+            };
+
+            document.Security =
+            [
+                new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference("Bearer", document)] = [] },
+            ];
+
+            return Task.CompletedTask;
+        }));
 
         // Errors: every failure is answered as ProblemDetails.
         services.AddProblemDetails();
