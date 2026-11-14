@@ -72,4 +72,15 @@ public class ApplicationsController : ControllerBase
     {
         return await _applicationsService.ChangeStatusAsync(id, request, cancellationToken);
     }
+
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        await _applicationsService.DeleteAsync(id, cancellationToken);
+
+        // 204 No Content: success, and there is nothing left to return.
+        return NoContent();
+    }
 }

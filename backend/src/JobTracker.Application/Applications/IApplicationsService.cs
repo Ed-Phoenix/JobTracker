@@ -13,4 +13,6 @@ public interface IApplicationsService
     Task<ApplicationDetailResponse> UpdateAsync(Guid id, SaveApplicationRequest request, CancellationToken cancellationToken);
 
     Task<ApplicationDetailResponse> ChangeStatusAsync(Guid id, ChangeStatusRequest request, CancellationToken cancellationToken);
+
+    Task DeleteAsync(Guid id, CancellationToken cancellationToken);
 }

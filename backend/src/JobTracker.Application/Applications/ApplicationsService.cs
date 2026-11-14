@@ -128,6 +128,16 @@ public class ApplicationsService : IApplicationsService
         return await ToDetailAsync(application, cancellationToken);
     }
 
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
+    {
+        JobApplication application = await FindOwnedAsync(id, cancellationToken);
+
+        // The status history is not removed by hand: the foreign key is configured with
+        // ON DELETE CASCADE, so the database deletes those rows together with the application.
+        _dbContext.JobApplications.Remove(application);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     /// <summary>
     /// Loads an application only if it belongs to the current user. A foreign id gives the
     /// same 404 as a non-existent one, so nobody can probe which ids exist.
