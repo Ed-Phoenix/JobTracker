@@ -20,6 +20,9 @@ public class AppDbContext : IdentityUserContext<ApplicationUser, Guid>, IAppDbCo
 
     public DbSet<StatusChange> StatusChanges => Set<StatusChange>();
 
+    // Not part of IAppDbContext: refresh tokens are an Infrastructure detail.
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
