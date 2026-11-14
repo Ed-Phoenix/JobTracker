@@ -2,11 +2,8 @@ using System.Net;
 
 namespace JobTracker.IntegrationTests;
 
-/// <summary>
-/// ApiFactory (a WebApplicationFactory) boots the real API in memory (same Program.cs, same pipeline)
-/// and gives us an HttpClient to call it, without opening a network port.
-/// </summary>
-public class HealthEndpointTests : IClassFixture<ApiFactory>
+[Collection(ApiCollection.Name)]
+public class HealthEndpointTests
 {
     private readonly HttpClient _client;
 
@@ -16,7 +13,7 @@ public class HealthEndpointTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
-    public async Task Get_health_returns_200_and_healthy()
+    public async Task Get_health_returns_200_and_healthy_when_the_database_is_reachable()
     {
         HttpResponseMessage response = await _client.GetAsync("/api/health");
 
