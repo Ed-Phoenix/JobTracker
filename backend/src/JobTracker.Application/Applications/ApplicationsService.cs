@@ -2,7 +2,6 @@ using JobTracker.Application.Abstractions;
 using JobTracker.Application.Common;
 using JobTracker.Application.Common.Exceptions;
 using JobTracker.Domain.Entities;
-using JobTracker.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace JobTracker.Application.Applications;
@@ -59,21 +58,10 @@ public class ApplicationsService : IApplicationsService
 
         if (query.NeedsFollowUp is not null)
         {
-            // Same rule as JobApplication.NeedsFollowUp, but written inline: EF Core can only translate
-            // to SQL what it sees in the expression, not the body of a C# method like IsTerminal().
-            // Keep the three terminal statuses in sync with ApplicationStatusExtensions.IsTerminal.
             DateTimeOffset cutoff = now.AddDays(-followUpDays);
             applications = query.NeedsFollowUp.Value
-                ? applications.Where(a =>
-                    a.Status != ApplicationStatus.Accepted
-                    && a.Status != ApplicationStatus.Rejected
-                    && a.Status != ApplicationStatus.NoResponse
-                    && a.LastActivityAt <= cutoff)
-                : applications.Where(a =>
-                    a.Status == ApplicationStatus.Accepted
-                    || a.Status == ApplicationStatus.Rejected
-                    || a.Status == ApplicationStatus.NoResponse
-                    || a.LastActivityAt > cutoff);
+                ? applications.NeedingFollowUp(cutoff)
+                : applications.NotNeedingFollowUp(cutoff);
         }
 
         int totalCount = await applications.CountAsync(cancellationToken);
