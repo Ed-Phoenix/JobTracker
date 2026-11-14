@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace JobTracker.Application;
@@ -10,6 +11,9 @@ public static class DependencyInjection
     /// </summary>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        // Finds every AbstractValidator<T> in this assembly and registers it as IValidator<T>.
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+
         return services;
     }
 }
