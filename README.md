@@ -94,6 +94,10 @@ The demo account comes with 25 sample applications. The interactive API referenc
 
 To stop everything run `docker compose down`, or `docker compose down --volumes` to also delete the database.
 
+## Deployment
+
+The demo runs on free tiers: **Vercel** (frontend, proxying `/api`), **Render** (API container) and **Neon** (PostgreSQL). The step-by-step guide and the reasoning behind it are in [docs/deployment.md](docs/deployment.md).
+
 ## Local development
 
 Run the database in Docker and the API and frontend on your machine, with hot reload.
