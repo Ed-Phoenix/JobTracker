@@ -21,7 +21,7 @@ describe('authentication flow', () => {
     renderApp('/')
 
     expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
-    expect(screen.getByText(demoUser.email)).toBeInTheDocument()
+    expect(screen.getByText(/Hi Ana, here is how your job search is going/)).toBeInTheDocument()
   })
 
   it('shows validation messages without calling the API when the form is empty', async () => {
