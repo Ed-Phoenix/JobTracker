@@ -1,4 +1,4 @@
-import { api, type AuthResponse } from '@/lib/apiClient'
+import { api, type AuthResponse, type User } from '@/lib/apiClient'
 import type { LoginValues, RegisterValues } from './schemas'
 
 // A 401 from these endpoints means "wrong credentials", so the client must not try to refresh.
@@ -11,4 +11,6 @@ export const authApi = {
     api.post<AuthResponse>('/auth/register', { fullName, email, password }, noRetry),
 
   logout: () => api.post<void>('/auth/logout', undefined, noRetry),
+
+  updateProfile: (values: { fullName: string; followUpDays: number }) => api.patch<User>('/auth/me', values),
 }
