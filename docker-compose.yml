@@ -1,3 +1,11 @@
+# The whole app with one command:   docker compose up --build
+# Then open http://localhost:8080 (or the WEB_PORT set in .env).
+#
+#   browser -> web (Nginx: React app + reverse proxy) -> api (ASP.NET Core) -> db (PostgreSQL)
+#
+# Only "web" (and "db", for running the API from your IDE) publish ports to your machine.
+# The API is reachable only through Nginx, which is why it can trust X-Forwarded-For.
+
 name: jobtracker
 
 services:
@@ -17,6 +25,34 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        # Wait until PostgreSQL accepts connections, not just until its container started.
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # "db" is the service name: containers on the same compose network reach each other by name.
+      ConnectionStrings__Default: Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?set JWT_SIGNING_KEY in .env (at least 32 characters)}
+      # The local stack is served over plain http://localhost; a deployment behind HTTPS keeps the default (true).
+      Jwt__SecureRefreshCookie: "false"
+      Database__MigrateOnStartup: "true"
+      Seed__Enabled: ${SEED_DEMO_DATA:-true}
+      Seed__DemoPassword: ${DEMO_PASSWORD:?set DEMO_PASSWORD in .env}
+      ForwardedHeaders__Enabled: "true"
+      ApiDocs__Enabled: ${API_DOCS_ENABLED:-true}
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-8080}:80"
 
 volumes:
   db-data:
