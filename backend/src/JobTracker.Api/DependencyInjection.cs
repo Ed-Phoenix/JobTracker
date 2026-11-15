@@ -4,6 +4,7 @@ using JobTracker.Api.Filters;
 using JobTracker.Api.Middleware;
 using JobTracker.Api.Services;
 using JobTracker.Application.Abstractions;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi;
 
 namespace JobTracker.Api;
@@ -51,6 +52,17 @@ public static class DependencyInjection
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUser, CurrentUser>();
+
+        // Trust X-Forwarded-For / X-Forwarded-Proto from the proxy in front of the API.
+        // The lists of known proxies are cleared because the proxy's address is not fixed
+        // (Docker network, hosting platform). That is only safe because the API is never
+        // reachable directly: in docker-compose it publishes no port, only Nginx does.
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.KnownIPNetworks.Clear();
+            options.KnownProxies.Clear();
+        });
 
         // Rate limiting slows down password guessing on the auth endpoints.
         int authPermitLimit = configuration.GetValue("RateLimiting:AuthPermitLimit", 10);

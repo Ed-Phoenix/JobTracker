@@ -24,11 +24,21 @@ var app = builder.Build();
 await app.Services.InitializeDatabaseAsync();
 
 // HTTP request pipeline: the order of the middleware matters.
-app.UseSerilogRequestLogging(); // Outermost, so it logs the final status code of every request.
+
+// Behind a reverse proxy (Nginx in Docker, the hosting platform in production) the TCP connection
+// comes from the proxy. This restores the real client IP from X-Forwarded-For, so rate limiting
+// and logs see each user instead of one shared proxy address. Must run before anything that reads the IP.
+if (app.Configuration.GetValue<bool>("ForwardedHeaders:Enabled"))
+{
+    app.UseForwardedHeaders();
+}
+
+app.UseSerilogRequestLogging(); // Logs the final status code of every request.
 app.UseExceptionHandler();      // Catches exceptions thrown by everything below.
 app.UseStatusCodePages();       // Gives empty error responses (401, 404...) a ProblemDetails body.
 
-if (app.Environment.IsDevelopment())
+// API docs: always on in Development; elsewhere only when explicitly enabled (e.g. for a public demo).
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("ApiDocs:Enabled"))
 {
     app.MapOpenApi();             // OpenAPI document at /openapi/v1.json
     app.MapScalarApiReference();  // Interactive API docs at /scalar
