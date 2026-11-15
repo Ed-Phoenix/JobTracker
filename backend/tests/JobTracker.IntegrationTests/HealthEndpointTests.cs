@@ -20,4 +20,15 @@ public class HealthEndpointTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("Healthy", await response.Content.ReadAsStringAsync());
     }
+
+    [Theory]
+    [InlineData("/api/health")]
+    [InlineData("/api/auth/me")]       // 401 responses too
+    [InlineData("/api/applications/x")] // and 404s
+    public async Task Api_responses_must_never_be_cached(string url)
+    {
+        HttpResponseMessage response = await _client.GetAsync(url);
+
+        Assert.True(response.Headers.CacheControl?.NoStore, $"{url} should send Cache-Control: no-store");
+    }
 }

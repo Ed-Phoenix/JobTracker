@@ -34,6 +34,18 @@ if (app.Configuration.GetValue<bool>("ForwardedHeaders:Enabled"))
 }
 
 app.UseSerilogRequestLogging(); // Logs the final status code of every request.
+
+// API responses are personal data: no browser, proxy or CDN may store them. This matters in
+// production, where the frontend host's CDN proxies /api and would honor cache headers.
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        context.Response.Headers.CacheControl = "no-store";
+        return Task.CompletedTask;
+    });
+    await next();
+});
 app.UseExceptionHandler();      // Catches exceptions thrown by everything below.
 app.UseStatusCodePages();       // Gives empty error responses (401, 404...) a ProblemDetails body.
 
