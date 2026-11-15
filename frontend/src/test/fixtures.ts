@@ -1,8 +1,25 @@
-import type {
-  ApplicationDetail,
-  ApplicationSummary,
-  PagedResult,
+import {
+  applicationStatuses,
+  type ApplicationDetail,
+  type ApplicationSummary,
+  type PagedResult,
 } from '@/features/applications/types'
+import type { DashboardSummary } from '@/features/dashboard/types'
+
+/** A dashboard summary: all zeros by default (a brand-new user), every status and 12 weeks present. */
+export function makeDashboardSummary(overrides: Partial<DashboardSummary> = {}): DashboardSummary {
+  return {
+    total: 0,
+    responseRate: 0,
+    byStatus: applicationStatuses.map((status) => ({ status, count: 0 })),
+    perWeek: Array.from({ length: 12 }, (_, index) => ({
+      weekStart: `2026-${index < 6 ? '08' : '09'}-${String(3 + (index % 6) * 4).padStart(2, '0')}`,
+      count: 0,
+    })),
+    needsFollowUpCount: 0,
+    ...overrides,
+  }
+}
 
 /** Test data builders: sensible defaults, override only what the test cares about. */
 
