@@ -8,6 +8,7 @@ import { cn } from '@/lib/cn'
 const navigation = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/applications', label: 'Applications', end: false },
+  { to: '/settings', label: 'Settings', end: false },
 ]
 
 /** Shell of the private area: header with navigation, then the current page in <Outlet />. */
