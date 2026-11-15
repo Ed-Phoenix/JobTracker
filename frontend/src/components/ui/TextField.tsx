@@ -1,5 +1,6 @@
 import { useId, type InputHTMLAttributes, type Ref } from 'react'
-import { cn } from '@/lib/cn'
+import { FieldMessage } from './FieldMessage'
+import { controlClasses, describedBy } from './fieldStyles'
 
 interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
@@ -17,8 +18,6 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
 export function TextField({ label, error, hint, className, id, ...props }: TextFieldProps) {
   const generatedId = useId()
   const inputId = id ?? generatedId
-  const errorId = `${inputId}-error`
-  const hintId = `${inputId}-hint`
 
   return (
     <div className={className}>
@@ -28,25 +27,11 @@ export function TextField({ label, error, hint, className, id, ...props }: TextF
       <input
         id={inputId}
         aria-invalid={error ? true : undefined}
-        aria-describedby={error ? errorId : hint ? hintId : undefined}
-        className={cn(
-          'block w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 shadow-xs',
-          'placeholder:text-slate-400',
-          error ? 'border-red-500' : 'border-slate-300',
-        )}
+        aria-describedby={describedBy(inputId, error, hint)}
+        className={controlClasses(Boolean(error))}
         {...props}
       />
-      {error ? (
-        <p id={errorId} className="mt-1.5 text-sm text-red-700">
-          {error}
-        </p>
-      ) : (
-        hint && (
-          <p id={hintId} className="mt-1.5 text-sm text-slate-500">
-            {hint}
-          </p>
-        )
-      )}
+      <FieldMessage id={inputId} error={error} hint={hint} />
     </div>
   )
 }
