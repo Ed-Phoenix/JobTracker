@@ -1,0 +1,42 @@
+# Render Blueprint: the API as a Docker web service on the free plan.
+# Create it from the Render dashboard: New > Blueprint > select this repository.
+# Full guide: docs/deployment.md
+
+services:
+  - type: web
+    name: jobtracker-api
+    runtime: docker
+    plan: free
+    # Ohio: same area as the Neon database (AWS us-east-2), so queries do not cross the continent.
+    region: ohio
+    # Only changes under backend/ trigger a new deploy.
+    rootDir: backend
+    # Both paths are relative to the repository root.
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    # Deploy a commit only after GitHub Actions passed on it.
+    autoDeployTrigger: checksPass
+    envVars:
+      # The image listens on 8080; Render routes traffic to the port in PORT.
+      - key: PORT
+        value: "8080"
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      # Secrets: Render asks for these when the Blueprint is created. They never live in the repository.
+      - key: ConnectionStrings__Default
+        sync: false
+      - key: Seed__DemoPassword
+        sync: false
+      # Render generates a random 256-bit value once and keeps it.
+      - key: Jwt__SigningKey
+        generateValue: true
+      - key: Database__MigrateOnStartup
+        value: "true"
+      - key: Seed__Enabled
+        value: "true"
+      # Render's proxy sits in front of the API and sets X-Forwarded-For.
+      - key: ForwardedHeaders__Enabled
+        value: "true"
+      - key: ApiDocs__Enabled
+        value: "true"
