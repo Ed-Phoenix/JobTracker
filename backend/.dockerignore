@@ -1,0 +1,9 @@
+# Keep the build context small and never copy local build output or secrets into the image.
+**/bin/
+**/obj/
+**/TestResults/
+tests/
+.vs/
+.vscode/
+*.user
+**/appsettings.*.local.json
