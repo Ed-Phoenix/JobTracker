@@ -142,7 +142,7 @@ cd frontend && npm run lint && npm run typecheck && npm test
 
 | Suite | What it covers |
 |---|---|
-| Backend unit (48) | Domain rules (status changes, follow-up rule), validators, weekly bucketing, connection-string parsing |
+| Backend unit (52) | Domain rules (status changes, follow-up rule), validators, weekly bucketing, connection-string parsing |
 | Backend integration (51) | Every endpoint through the real HTTP pipeline and database: auth flows, refresh-token rotation and reuse detection, user isolation, filters, sorting, paging, dashboard metrics, rate limiting, forwarded headers, no-store caching |
 | Frontend (57) | API client (token refresh, single-flight), auth flow, list filters in the URL, debounced search, forms, dialogs and focus management, dashboard, settings |
 
