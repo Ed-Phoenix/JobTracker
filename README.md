@@ -143,7 +143,7 @@ cd frontend && npm run lint && npm run typecheck && npm test
 | Suite | What it covers |
 |---|---|
 | Backend unit (45) | Domain rules (status changes, follow-up rule), validators, weekly bucketing |
-| Backend integration (48) | Every endpoint through the real HTTP pipeline and database: auth flows, refresh-token rotation and reuse detection, user isolation, filters, sorting, paging, dashboard metrics, rate limiting |
+| Backend integration (51) | Every endpoint through the real HTTP pipeline and database: auth flows, refresh-token rotation and reuse detection, user isolation, filters, sorting, paging, dashboard metrics, rate limiting, forwarded headers, no-store caching |
 | Frontend (57) | API client (token refresh, single-flight), auth flow, list filters in the URL, debounced search, forms, dialogs and focus management, dashboard, settings |
 
 GitHub Actions runs all of them on every push. A third job builds the Docker images, starts the whole stack with `docker compose` and smoke-tests it through Nginx.
