@@ -18,6 +18,9 @@ Built with **ASP.NET Core 10**, **PostgreSQL** and **React + TypeScript**, with 
 - **Dashboard** – total applications, response rate, active processes, applications per week and the current status breakdown.
 - **Search, filters, sorting and pagination** – all executed by the database, and kept in the URL so any view can be bookmarked or shared.
 - **Follow-up reminders** – open applications with no activity for a configurable number of days are flagged.
+- **Kanban board** – one column per status; drag a card to move it. The change shows instantly and is rolled back if the server rejects it. Every card also has a "Move to" list, so the board works without dragging.
+- **Export** – download the current view (same search, filters and order) as CSV or Excel.
+- **Dark mode** – light, dark or follow the system, remembered per browser.
 - **Responsive and accessible** – works on phones, usable with a keyboard and a screen reader, with loading, empty and error states everywhere.
 
 ## Tech stack
@@ -28,10 +31,11 @@ Built with **ASP.NET Core 10**, **PostgreSQL** and **React + TypeScript**, with 
 | Data | PostgreSQL 17, Entity Framework Core 10 (code-first migrations) |
 | Auth | ASP.NET Core Identity, JWT access tokens, rotating refresh tokens in HttpOnly cookies |
 | Validation & errors | FluentValidation, RFC 9457 ProblemDetails |
+| Export | CSV (RFC 4180, written by hand) and Excel (ClosedXML) |
 | API docs | OpenAPI + Scalar |
 | Logging | Serilog |
-| Frontend | React 19, TypeScript, Vite, Tailwind CSS v4 |
-| Frontend data & forms | TanStack Query, React Router, React Hook Form + Zod, Recharts |
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS v4 (design tokens for light/dark themes) |
+| Frontend data & forms | TanStack Query, React Router, React Hook Form + Zod, Recharts, dnd-kit |
 | Tests | xUnit, WebApplicationFactory + Testcontainers (real PostgreSQL); Vitest, Testing Library, MSW |
 | DevOps | Docker (multi-stage images), docker-compose, Nginx, GitHub Actions |
 
@@ -144,9 +148,9 @@ cd frontend && npm run lint && npm run typecheck && npm test
 
 | Suite | What it covers |
 |---|---|
-| Backend unit (52) | Domain rules (status changes, follow-up rule), validators, weekly bucketing, connection-string parsing |
-| Backend integration (51) | Every endpoint through the real HTTP pipeline and database: auth flows, refresh-token rotation and reuse detection, user isolation, filters, sorting, paging, dashboard metrics, rate limiting, forwarded headers, no-store caching |
-| Frontend (57) | API client (token refresh, single-flight), auth flow, list filters in the URL, debounced search, forms, dialogs and focus management, dashboard, settings |
+| Backend unit (61) | Domain rules (status changes, follow-up rule), validators, weekly bucketing, connection-string parsing, CSV escaping and formula-injection guard |
+| Backend integration (57) | Every endpoint through the real HTTP pipeline and database: auth flows, refresh-token rotation and reuse detection, user isolation, filters, sorting, paging, dashboard metrics, rate limiting, forwarded headers, no-store caching, CSV/Excel export |
+| Frontend (71) | API client (token refresh, single-flight), auth flow, list filters in the URL, debounced search, forms, dialogs and focus management, dashboard, settings, board (optimistic move and rollback), export, theme toggle |
 
 GitHub Actions runs all of them on every push. A third job builds the Docker images, starts the whole stack with `docker compose` and smoke-tests it through Nginx.
 
@@ -162,6 +166,7 @@ All endpoints are under `/api`. Errors use the ProblemDetails format (`applicati
 | POST | `/auth/logout` | Revoke the refresh token |
 | GET / PATCH | `/auth/me` | Read or update the profile (name, follow-up days) |
 | GET | `/applications` | Paginated list: `search`, `status`, `source`, `needsFollowUp`, `sortBy`, `sortDir`, `page`, `pageSize` |
+| GET | `/applications/export` | Same filters and order, every page, as a file: `format=csv` or `format=xlsx` |
 | POST | `/applications` | Create an application |
 | GET / PUT / DELETE | `/applications/{id}` | Read, update or delete one application |
 | POST | `/applications/{id}/status` | Change the status, appending to the history |
@@ -177,15 +182,16 @@ All endpoints are under `/api`. Errors use the ProblemDetails format (`applicati
 - **Integration tests with a real PostgreSQL** (Testcontainers) instead of the EF Core in-memory provider, which does not behave like a relational database (constraints, SQL translation, transactions).
 - **Follow-up reminders are a query, not a background job.** "Open and no activity for N days" is a `WHERE` clause, so it is always up to date and needs no scheduler.
 - **Server state vs client state in the frontend.** TanStack Query caches API data and invalidates it after writes. Only the signed-in user lives in React context. List filters live in the URL.
+- **Optimistic updates on the board.** Moving a card updates the TanStack Query cache before the request finishes, keeps a snapshot, and restores it if the API answers 409 (for example, "Accepted" without an offer). The domain rule still lives only on the server.
+- **Design tokens for theming.** Components use role-based colors (`bg-surface`, `text-fg-muted`, `ring-line`) defined once in `index.css` and redefined under `.dark`, instead of a `dark:` twin on every class. A tiny external script applies the saved theme before the first paint (no flash) without weakening the CSP with inline scripts.
+- **Safe spreadsheets.** CSV cells that start with `=`, `+`, `-` or `@` are prefixed so a spreadsheet never runs user text as a formula (CSV injection); Excel cells are written as typed values, never formulas.
 - **Security by default.** Secrets come from environment variables or user secrets, never the repository. Auth endpoints are rate-limited per client IP (forwarded headers are honored behind the proxy). Nginx sends a strict Content Security Policy and other security headers. The API container runs as a non-root user and is only reachable through Nginx.
 
 ## Next steps
 
-- Kanban board with drag and drop to change statuses
-- Export applications to CSV / Excel
-- Dark mode
 - Email reminders for follow-ups (a background job on top of the existing query)
 - Sort by status in pipeline order instead of alphabetically
+- Keyboard drag and drop on the board (today keyboard users move cards with the "Move to" list)
 
 ## More screenshots
 
@@ -196,3 +202,7 @@ All endpoints are under `/api`. Errors use the ProblemDetails format (`applicati
 | Form validation | Mobile |
 |---|---|
 | ![Form validation](docs/screenshots/form-validation.png) | <img src="docs/screenshots/mobile-applications.png" alt="Applications on a phone" width="300"> |
+
+| Kanban board | Dark mode |
+|---|---|
+| ![Kanban board](docs/screenshots/board.png) | ![Dashboard in dark mode](docs/screenshots/dashboard-dark.png) |
