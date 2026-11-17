@@ -44,7 +44,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={toast.id}
             className={cn(
               'pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl px-4 py-3 text-sm shadow-lg ring-1',
-              toast.tone === 'success' ? 'bg-slate-900 text-white ring-slate-900' : 'bg-red-50 text-red-900 ring-red-200',
+              toast.tone === 'success' ? // Inverted colors (dark toast on a light page, light toast on a dark page) stand out in both themes.
+              'bg-fg text-surface ring-fg' : 'bg-red-50 text-red-900 ring-red-200 dark:bg-red-950 dark:text-red-100 dark:ring-red-900',
             )}
           >
             <p className="flex-1">{toast.message}</p>

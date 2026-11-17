@@ -58,12 +58,12 @@ export function ApplicationForm({ defaultValues, submitLabel, cancelTo, onSubmit
     <form
       onSubmit={handleSubmit(submit)}
       noValidate
-      className="space-y-6 rounded-2xl bg-white p-6 ring-1 ring-slate-200"
+      className="space-y-6 rounded-2xl bg-surface p-6 ring-1 ring-line"
     >
       {formError && <Alert>{formError}</Alert>}
 
       <fieldset className="grid gap-4 sm:grid-cols-2">
-        <legend className="mb-2 text-sm font-semibold text-slate-900">The job</legend>
+        <legend className="mb-2 text-sm font-semibold text-fg">The job</legend>
         <TextField label="Company" autoComplete="organization" error={errors.company?.message} {...register('company')} />
         <TextField label="Position" error={errors.position?.message} {...register('position')} />
         <TextField
@@ -86,7 +86,7 @@ export function ApplicationForm({ defaultValues, submitLabel, cancelTo, onSubmit
       </fieldset>
 
       <fieldset className="grid gap-4 sm:grid-cols-2">
-        <legend className="mb-2 text-sm font-semibold text-slate-900">Your application</legend>
+        <legend className="mb-2 text-sm font-semibold text-fg">Your application</legend>
         <TextField label="Applied on" type="date" error={errors.appliedOn?.message} {...register('appliedOn')} />
         <SelectField
           label="Source"
@@ -119,7 +119,7 @@ export function ApplicationForm({ defaultValues, submitLabel, cancelTo, onSubmit
         />
       </fieldset>
 
-      <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
+      <div className="flex flex-col-reverse gap-3 border-t border-line-soft pt-6 sm:flex-row sm:justify-end">
         <Link to={cancelTo} className={buttonClasses('secondary')}>
           Cancel
         </Link>

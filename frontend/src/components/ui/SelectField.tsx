@@ -38,7 +38,7 @@ export function SelectField({
     <div className={className}>
       <label
         htmlFor={selectId}
-        className={hideLabel ? 'sr-only' : 'mb-1.5 block text-sm font-medium text-slate-700'}
+        className={hideLabel ? 'sr-only' : 'mb-1.5 block text-sm font-medium text-fg-soft'}
       >
         {label}
       </label>

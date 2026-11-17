@@ -15,7 +15,7 @@ export function TextAreaField({ label, error, hint, className, id, rows = 4, ...
 
   return (
     <div className={className}>
-      <label htmlFor={textAreaId} className="mb-1.5 block text-sm font-medium text-slate-700">
+      <label htmlFor={textAreaId} className="mb-1.5 block text-sm font-medium text-fg-soft">
         {label}
       </label>
       <textarea

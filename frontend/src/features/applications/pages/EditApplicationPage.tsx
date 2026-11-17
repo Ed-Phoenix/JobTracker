@@ -34,7 +34,7 @@ export function EditApplicationPage() {
   return (
     <section className="mx-auto max-w-3xl space-y-6">
       <BackLink to={`/applications/${id}`}>Back to application</BackLink>
-      <h1 className="text-2xl font-semibold text-slate-900">Edit application</h1>
+      <h1 className="text-2xl font-semibold text-fg">Edit application</h1>
       <ApplicationForm
         // The form reads defaultValues once; the key remounts it if another application is opened.
         key={application.data.id}

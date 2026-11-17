@@ -27,8 +27,8 @@ export function DashboardPage() {
     <section className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="text-2xl font-semibold text-fg">Dashboard</h1>
+          <p className="mt-1 text-sm text-fg-muted">
             {firstName ? `Hi ${firstName}, here` : 'Here'} is how your job search is going.
           </p>
         </div>
@@ -70,7 +70,7 @@ export function DashboardPage() {
               value={integer.format(data.needsFollowUpCount)}
               detail={
                 data.needsFollowUpCount > 0 ? (
-                  <Link to="/applications?needsFollowUp=true" className="font-medium text-brand-700 hover:underline">
+                  <Link to="/applications?needsFollowUp=true" className="font-medium text-accent hover:underline">
                     Review them
                   </Link>
                 ) : (

@@ -8,7 +8,7 @@ interface FieldMessageProps {
 export function FieldMessage({ id, error, hint }: FieldMessageProps) {
   if (error) {
     return (
-      <p id={`${id}-error`} className="mt-1.5 text-sm text-red-700">
+      <p id={`${id}-error`} className="mt-1.5 text-sm text-red-700 dark:text-red-400">
         {error}
       </p>
     )
@@ -16,7 +16,7 @@ export function FieldMessage({ id, error, hint }: FieldMessageProps) {
 
   if (hint) {
     return (
-      <p id={`${id}-hint`} className="mt-1.5 text-sm text-slate-500">
+      <p id={`${id}-hint`} className="mt-1.5 text-sm text-fg-subtle">
         {hint}
       </p>
     )

@@ -79,13 +79,13 @@ export function Dialog({ title, description, onClose, children }: DialogProps) {
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
-        className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+        className="relative w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl"
       >
-        <h2 id={titleId} className="text-lg font-semibold text-slate-900">
+        <h2 id={titleId} className="text-lg font-semibold text-fg">
           {title}
         </h2>
         {description && (
-          <div id={descriptionId} className="mt-1 text-sm text-slate-600">
+          <div id={descriptionId} className="mt-1 text-sm text-fg-muted">
             {description}
           </div>
         )}

@@ -37,8 +37,8 @@ export function ApplicationsListPage() {
     <section className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Applications</h1>
-          <p className="mt-1 text-sm text-slate-600">Every job you applied to, and where each process stands.</p>
+          <h1 className="text-2xl font-semibold text-fg">Applications</h1>
+          <p className="mt-1 text-sm text-fg-muted">Every job you applied to, and where each process stands.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <ExportButtons params={params} disabled={!data || data.totalCount === 0} />
