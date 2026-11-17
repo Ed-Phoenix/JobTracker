@@ -4,6 +4,7 @@ import { dashboardKeys } from '@/features/dashboard/queryKeys'
 import { toApiQuery } from './listParams'
 import type {
   ApplicationDetail,
+  ApplicationStatus,
   ApplicationListParams,
   ApplicationSummary,
   ChangeStatusRequest,
@@ -20,7 +21,11 @@ export const applicationKeys = {
   lists: () => [...applicationKeys.all, 'list'] as const,
   list: (params: ApplicationListParams) => [...applicationKeys.lists(), params] as const,
   detail: (id: string) => [...applicationKeys.all, 'detail', id] as const,
+  board: () => [...applicationKeys.all, 'board'] as const,
 }
+
+/** The board shows up to this many applications, the most recently active first (the API's page limit). */
+export const boardLimit = 100
 
 // ---------- Queries (reads) ----------
 
@@ -32,6 +37,17 @@ export function useApplications(params: ApplicationListParams) {
       api.get<PagedResult<ApplicationSummary>>(`/applications?${toApiQuery(params)}`, signal),
     // Keep showing the previous page while the next one loads, instead of flashing a spinner.
     placeholderData: keepPreviousData,
+  })
+}
+
+export function useBoard() {
+  return useQuery({
+    queryKey: applicationKeys.board(),
+    queryFn: ({ signal }) =>
+      api.get<PagedResult<ApplicationSummary>>(
+        `/applications?sortBy=lastActivityAt&sortDir=desc&page=1&pageSize=${boardLimit}`,
+        signal,
+      ),
   })
 }
 
@@ -54,6 +70,7 @@ function afterWrite(queryClient: QueryClient, detail?: ApplicationDetail) {
   }
 
   void queryClient.invalidateQueries({ queryKey: applicationKeys.lists() })
+  void queryClient.invalidateQueries({ queryKey: applicationKeys.board() })
   void queryClient.invalidateQueries({ queryKey: dashboardKeys.all })
 }
 
@@ -90,5 +107,46 @@ export function useDeleteApplication(id: string) {
   return useMutation({
     mutationFn: () => api.delete(`/applications/${id}`),
     onSuccess: () => afterWrite(queryClient),
+  })
+}
+
+/**
+ * Moves a card on the board: an optimistic update. The card changes column immediately, before
+ * the API answers; if the API refuses (e.g. "Accepted" without an offer first), the board is
+ * restored from the snapshot and the error is reported. The server stays the source of truth.
+ */
+export function useMoveApplication({ onError }: { onError: (error: unknown, company: string) => void }) {
+  const queryClient = useQueryClient()
+  const boardKey = applicationKeys.board()
+
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: ApplicationStatus; company: string }) =>
+      api.post<ApplicationDetail>(`/applications/${id}/status`, { status, note: null } satisfies ChangeStatusRequest),
+
+    onMutate: async ({ id, status }) => {
+      // Stop any board refetch in flight, so it cannot overwrite the optimistic change with old data.
+      await queryClient.cancelQueries({ queryKey: boardKey })
+      const previous = queryClient.getQueryData<PagedResult<ApplicationSummary>>(boardKey)
+
+      queryClient.setQueryData<PagedResult<ApplicationSummary>>(boardKey, (board) =>
+        board && {
+          ...board,
+          items: board.items.map((item) =>
+            item.id === id ? { ...item, status, lastActivityAt: new Date().toISOString(), needsFollowUp: false } : item,
+          ),
+        },
+      )
+
+      return { previous }
+    },
+
+    onError: (error, { company }, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(boardKey, context.previous)
+      }
+      onError(error, company)
+    },
+
+    onSuccess: (detail) => afterWrite(queryClient, detail),
   })
 }

@@ -43,6 +43,10 @@ export const routes: RouteObject[] = [
                 }),
               },
               {
+                path: '/board',
+                lazy: async () => ({ Component: (await import('@/features/applications/pages/BoardPage')).BoardPage }),
+              },
+              {
                 path: '/applications/new',
                 lazy: async () => ({
                   Component: (await import('@/features/applications/pages/NewApplicationPage')).NewApplicationPage,
