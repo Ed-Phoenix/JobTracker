@@ -33,8 +33,9 @@ public static class DependencyInjection
     private static void AddPersistence(IServiceCollection services, IConfiguration configuration)
     {
         // Fail fast: a missing connection string should stop the app at startup, not on the first request.
-        string connectionString = configuration.GetConnectionString("Default")
-            ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
+        string connectionString = PostgresConnectionString.Normalize(
+            configuration.GetConnectionString("Default")
+            ?? throw new InvalidOperationException("Connection string 'Default' is not configured."));
 
         // AddDbContext registers AppDbContext as scoped: one instance per HTTP request.
         services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
