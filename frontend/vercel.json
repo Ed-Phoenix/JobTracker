@@ -2,10 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://jobtracker-api.onrender.com/api/:path*" },
-    { "source": "/scalar", "destination": "https://jobtracker-api.onrender.com/scalar" },
-    { "source": "/scalar/:path*", "destination": "https://jobtracker-api.onrender.com/scalar/:path*" },
-    { "source": "/openapi/:path*", "destination": "https://jobtracker-api.onrender.com/openapi/:path*" },
+    { "source": "/api/:path*", "destination": "https://jobtracker-api-619a.onrender.com/api/:path*" },
+    { "source": "/scalar", "destination": "https://jobtracker-api-619a.onrender.com/scalar" },
+    { "source": "/scalar/:path*", "destination": "https://jobtracker-api-619a.onrender.com/scalar/:path*" },
+    { "source": "/openapi/:path*", "destination": "https://jobtracker-api-619a.onrender.com/openapi/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
