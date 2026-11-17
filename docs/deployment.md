@@ -18,12 +18,9 @@ flowchart LR
 ## 1. Database on Neon
 
 1. Create a Neon account and a project. Region: **AWS US East 2 (Ohio)**, close to the Render region used below.
-2. Open **Connect**, turn **Connection pooling off** (the direct connection is the right one for migrations), and copy the connection details.
-3. Npgsql expects key/value pairs, not a `postgresql://` URL. Build the string like this:
+2. Open **Connect**, turn **Connection pooling off** (the direct connection is the right one for migrations), and copy the connection string.
 
-   ```
-   Host=<ep-xxxx>.us-east-2.aws.neon.tech;Database=neondb;Username=<user>;Password=<password>;SSL Mode=Require
-   ```
+It looks like `postgresql://<user>:<password>@<ep-xxxx>.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require`. Npgsql itself only reads key/value strings (`Host=...;Database=...`), so the API converts URLs on startup (`PostgresConnectionString`); either form works.
 
 Keep it private: you paste it into Render in the next step and nowhere else.
 

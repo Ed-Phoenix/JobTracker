@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\JobTracker.Domain\JobTracker.Domain.csproj" />
     <ProjectReference Include="..\..\src\JobTracker.Application\JobTracker.Application.csproj" />
+    <ProjectReference Include="..\..\src\JobTracker.Infrastructure\JobTracker.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
