@@ -37,7 +37,7 @@ export function StatusChart({ data }: { data: StatusCount[] }) {
           isAnimationActive={false}
         >
           {/* Value at the bar tip, in a text color (never the bar color). */}
-          <LabelList dataKey="count" position="right" fill="#334155" fontSize={12} />
+          <LabelList dataKey="count" position="right" fill={chartColors.valueText} fontSize={12} />
         </Bar>
       </BarChart>
     </ResponsiveContainer>
