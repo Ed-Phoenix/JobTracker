@@ -11,9 +11,18 @@ public static class PostgresConnectionString
 {
     public static string Normalize(string connectionString)
     {
+        connectionString = StripPastingNoise(connectionString);
+
         if (!connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) &&
             !connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
         {
+            // Never echo the value: it contains the database password.
+            if (!connectionString.Contains('='))
+            {
+                throw new InvalidOperationException(
+                    "Connection string 'Default' must be either key/value pairs (Host=...;Database=...) or a postgresql:// URL.");
+            }
+
             return connectionString;
         }
 
@@ -52,5 +61,20 @@ public static class PostgresConnectionString
         }
 
         return builder.ConnectionString;
+    }
+
+    /// <summary>
+    /// Provider dashboards often copy the URL as a shell command (psql 'postgresql://...')
+    /// or with quotes and line breaks around it. Keep only the connection string itself.
+    /// </summary>
+    private static string StripPastingNoise(string value)
+    {
+        value = value.Trim();
+        if (value.StartsWith("psql ", StringComparison.OrdinalIgnoreCase))
+        {
+            value = value["psql ".Length..].Trim();
+        }
+
+        return value.Trim('\'', '"').Trim();
     }
 }

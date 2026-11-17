@@ -29,6 +29,28 @@ public class PostgresConnectionStringTests
         Assert.Equal(ChannelBinding.Require, builder.ChannelBinding);
     }
 
+    [Theory]
+    [InlineData("  postgresql://app:secret@db.example.com/jobs?sslmode=require \n")]
+    [InlineData("'postgresql://app:secret@db.example.com/jobs?sslmode=require'")]
+    [InlineData("psql 'postgresql://app:secret@db.example.com/jobs?sslmode=require'")]
+    public void Urls_copied_with_quotes_whitespace_or_as_a_psql_command_are_accepted(string pasted)
+    {
+        var builder = new NpgsqlConnectionStringBuilder(PostgresConnectionString.Normalize(pasted));
+
+        Assert.Equal("db.example.com", builder.Host);
+        Assert.Equal("jobs", builder.Database);
+        Assert.Equal("secret", builder.Password);
+    }
+
+    [Fact]
+    public void An_unrecognised_value_fails_without_revealing_it()
+    {
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PostgresConnectionString.Normalize("not-a-connection-string-s3cret"));
+
+        Assert.DoesNotContain("s3cret", exception.Message);
+    }
+
     [Fact]
     public void The_postgres_scheme_and_an_explicit_port_are_supported()
     {
