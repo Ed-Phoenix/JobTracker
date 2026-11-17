@@ -49,16 +49,18 @@ public class ChangeStatusRequestValidator : AbstractValidator<ChangeStatusReques
     }
 }
 
-public class ApplicationListQueryValidator : AbstractValidator<ApplicationListQuery>
+/// <summary>
+/// Rules for the shared filters. Abstract and generic, so the list and the export validators inherit
+/// them, and AddValidatorsFromAssembly does not register this one on its own.
+/// </summary>
+public abstract class ApplicationFilterQueryValidator<TQuery> : AbstractValidator<TQuery>
+    where TQuery : ApplicationFilterQuery
 {
-    public ApplicationListQueryValidator()
+    protected ApplicationFilterQueryValidator()
     {
         RuleFor(q => q.Search).MaximumLength(100);
-
-        RuleFor(q => q.Page).GreaterThanOrEqualTo(1);
-
-        // An upper bound stops a client from asking for the whole table in one request.
-        RuleFor(q => q.PageSize).InclusiveBetween(1, 100);
+        RuleFor(q => q.Status).IsInEnum();
+        RuleFor(q => q.Source).IsInEnum();
 
         RuleFor(q => q.SortBy)
             .Must(sortBy => ApplicationSortFields.All.Contains(sortBy, StringComparer.OrdinalIgnoreCase))
@@ -67,5 +69,24 @@ public class ApplicationListQueryValidator : AbstractValidator<ApplicationListQu
         RuleFor(q => q.SortDir)
             .Must(sortDir => sortDir is not null && (sortDir.Equals("asc", StringComparison.OrdinalIgnoreCase) || sortDir.Equals("desc", StringComparison.OrdinalIgnoreCase)))
             .WithMessage("Sort direction must be 'asc' or 'desc'.");
+    }
+}
+
+public class ApplicationListQueryValidator : ApplicationFilterQueryValidator<ApplicationListQuery>
+{
+    public ApplicationListQueryValidator()
+    {
+        RuleFor(q => q.Page).GreaterThanOrEqualTo(1);
+
+        // An upper bound stops a client from asking for the whole table in one request.
+        RuleFor(q => q.PageSize).InclusiveBetween(1, 100);
+    }
+}
+
+public class ApplicationExportQueryValidator : ApplicationFilterQueryValidator<ApplicationExportQuery>
+{
+    public ApplicationExportQueryValidator()
+    {
+        RuleFor(q => q.Format).IsInEnum();
     }
 }

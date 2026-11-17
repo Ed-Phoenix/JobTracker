@@ -1,6 +1,8 @@
 using System.Text;
 using JobTracker.Application.Abstractions;
+using JobTracker.Application.Applications.Export;
 using JobTracker.Application.Auth;
+using JobTracker.Infrastructure.Export;
 using JobTracker.Infrastructure.Identity;
 using JobTracker.Infrastructure.Persistence;
 using JobTracker.Infrastructure.Persistence.Seed;
@@ -26,6 +28,9 @@ public static class DependencyInjection
 
         AddPersistence(services, configuration);
         AddAuth(services, configuration);
+
+        // Excel needs a third-party library, so this writer lives here and not in Application.
+        services.AddSingleton<IApplicationExportWriter, XlsxApplicationExportWriter>();
 
         return services;
     }

@@ -23,10 +23,10 @@ public record SaveApplicationRequest(
 public record ChangeStatusRequest(ApplicationStatus? Status, string? Note);
 
 /// <summary>
-/// Query string of GET /api/applications. A class with setters (not a record) because
-/// model binding fills it property by property and the defaults matter.
+/// Search, filters and sorting shared by the list and the export, so both always select the same rows.
+/// A class with setters (not a record) because model binding fills it property by property and the defaults matter.
 /// </summary>
-public class ApplicationListQuery
+public abstract class ApplicationFilterQuery
 {
     public string? Search { get; set; }
 
@@ -39,10 +39,26 @@ public class ApplicationListQuery
     public string SortBy { get; set; } = ApplicationSortFields.AppliedOn;
 
     public string SortDir { get; set; } = "desc";
+}
 
+/// <summary>Query string of GET /api/applications.</summary>
+public class ApplicationListQuery : ApplicationFilterQuery
+{
     public int Page { get; set; } = 1;
 
     public int PageSize { get; set; } = 20;
+}
+
+public enum ExportFormat
+{
+    Csv,
+    Xlsx,
+}
+
+/// <summary>Query string of GET /api/applications/export: the current filters plus the file format.</summary>
+public class ApplicationExportQuery : ApplicationFilterQuery
+{
+    public ExportFormat Format { get; set; } = ExportFormat.Csv;
 }
 
 /// <summary>

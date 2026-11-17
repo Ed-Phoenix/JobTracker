@@ -1,4 +1,5 @@
 using JobTracker.Application.Abstractions;
+using JobTracker.Application.Applications.Export;
 using JobTracker.Application.Common;
 using JobTracker.Application.Common.Exceptions;
 using JobTracker.Domain.Entities;
@@ -12,57 +13,31 @@ public class ApplicationsService : IApplicationsService
     private readonly ICurrentUser _currentUser;
     private readonly IUserPreferences _userPreferences;
     private readonly TimeProvider _timeProvider;
+    private readonly IEnumerable<IApplicationExportWriter> _exportWriters;
 
     public ApplicationsService(
         IAppDbContext dbContext,
         ICurrentUser currentUser,
         IUserPreferences userPreferences,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        IEnumerable<IApplicationExportWriter> exportWriters)
     {
         _dbContext = dbContext;
         _currentUser = currentUser;
         _userPreferences = userPreferences;
         _timeProvider = timeProvider;
+        _exportWriters = exportWriters;
     }
+
+    /// <summary>Upper bound for one export: protects the server's memory if an account ever grows huge.</summary>
+    public const int ExportLimit = 5_000;
 
     public async Task<PagedResult<ApplicationSummaryResponse>> ListAsync(ApplicationListQuery query, CancellationToken cancellationToken)
     {
-        Guid userId = _currentUser.UserId;
         DateTimeOffset now = _timeProvider.GetUtcNow();
-        int followUpDays = await _userPreferences.GetFollowUpDaysAsync(userId, cancellationToken);
+        int followUpDays = await _userPreferences.GetFollowUpDaysAsync(_currentUser.UserId, cancellationToken);
 
-        // IQueryable is a query being built, not data: nothing is sent to the database
-        // until CountAsync / ToListAsync below (deferred execution).
-        // AsNoTracking: read-only query, so EF skips change tracking (faster, less memory).
-        IQueryable<JobApplication> applications = _dbContext.JobApplications
-            .AsNoTracking()
-            .Where(a => a.UserId == userId);
-
-        if (!string.IsNullOrWhiteSpace(query.Search))
-        {
-            // Translates to: lower("Company") LIKE '%term%'. The term travels as a SQL
-            // parameter (no SQL injection) and EF escapes the LIKE wildcards in it.
-            string term = query.Search.Trim().ToLower();
-            applications = applications.Where(a => a.Company.ToLower().Contains(term) || a.Position.ToLower().Contains(term));
-        }
-
-        if (query.Status is not null)
-        {
-            applications = applications.Where(a => a.Status == query.Status);
-        }
-
-        if (query.Source is not null)
-        {
-            applications = applications.Where(a => a.Source == query.Source);
-        }
-
-        if (query.NeedsFollowUp is not null)
-        {
-            DateTimeOffset cutoff = now.AddDays(-followUpDays);
-            applications = query.NeedsFollowUp.Value
-                ? applications.NeedingFollowUp(cutoff)
-                : applications.NotNeedingFollowUp(cutoff);
-        }
+        IQueryable<JobApplication> applications = Filter(query, followUpDays, now);
 
         int totalCount = await applications.CountAsync(cancellationToken);
 
@@ -74,6 +49,40 @@ public class ApplicationsService : IApplicationsService
         List<ApplicationSummaryResponse> items = page.Select(a => a.ToSummary(followUpDays, now)).ToList();
 
         return new PagedResult<ApplicationSummaryResponse>(items, query.Page, query.PageSize, totalCount);
+    }
+
+    public async Task<ExportFile> ExportAsync(ApplicationExportQuery query, CancellationToken cancellationToken)
+    {
+        IApplicationExportWriter writer = _exportWriters.FirstOrDefault(w => w.Format == query.Format)
+            ?? throw new InvalidOperationException($"No export writer is registered for {query.Format}.");
+
+        DateTimeOffset now = _timeProvider.GetUtcNow();
+        int followUpDays = await _userPreferences.GetFollowUpDaysAsync(_currentUser.UserId, cancellationToken);
+
+        // Same filters and order as the list the user is looking at, but every page at once.
+        List<JobApplication> applications = await Sort(Filter(query, followUpDays, now), query.SortBy, query.SortDir)
+            .Take(ExportLimit)
+            .ToListAsync(cancellationToken);
+
+        List<ApplicationExportRow> rows = applications
+            .Select(a => new ApplicationExportRow(
+                a.Company,
+                a.Position,
+                ExportLabels.For(a.Status),
+                ExportLabels.For(a.Source),
+                ExportLabels.For(a.WorkMode),
+                a.Location,
+                a.SalaryAmount,
+                a.SalaryCurrency,
+                a.AppliedOn,
+                DateOnly.FromDateTime(a.LastActivityAt.UtcDateTime),
+                a.NeedsFollowUp(followUpDays, now),
+                a.JobUrl,
+                a.Notes))
+            .ToList();
+
+        string fileName = $"jobtracker-applications-{now:yyyy-MM-dd}.{writer.FileExtension}";
+        return new ExportFile(writer.Write(rows), writer.ContentType, fileName);
     }
 
     public async Task<ApplicationDetailResponse> GetAsync(Guid id, CancellationToken cancellationToken)
@@ -145,6 +154,49 @@ public class ApplicationsService : IApplicationsService
     {
         int followUpDays = await _userPreferences.GetFollowUpDaysAsync(application.UserId, cancellationToken);
         return application.ToDetail(followUpDays, _timeProvider.GetUtcNow());
+    }
+
+    /// <summary>
+    /// The current user's applications narrowed by search and filters. Returns IQueryable: a query
+    /// being built, not data. Nothing reaches the database until the caller runs CountAsync or
+    /// ToListAsync (deferred execution), so paging and sorting are added to the same SQL.
+    /// </summary>
+    private IQueryable<JobApplication> Filter(ApplicationFilterQuery query, int followUpDays, DateTimeOffset now)
+    {
+        Guid userId = _currentUser.UserId;
+
+        // AsNoTracking: read-only query, so EF skips change tracking (faster, less memory).
+        IQueryable<JobApplication> applications = _dbContext.JobApplications
+            .AsNoTracking()
+            .Where(a => a.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            // Translates to: lower("Company") LIKE '%term%'. The term travels as a SQL
+            // parameter (no SQL injection) and EF escapes the LIKE wildcards in it.
+            string term = query.Search.Trim().ToLower();
+            applications = applications.Where(a => a.Company.ToLower().Contains(term) || a.Position.ToLower().Contains(term));
+        }
+
+        if (query.Status is not null)
+        {
+            applications = applications.Where(a => a.Status == query.Status);
+        }
+
+        if (query.Source is not null)
+        {
+            applications = applications.Where(a => a.Source == query.Source);
+        }
+
+        if (query.NeedsFollowUp is not null)
+        {
+            DateTimeOffset cutoff = now.AddDays(-followUpDays);
+            applications = query.NeedsFollowUp.Value
+                ? applications.NeedingFollowUp(cutoff)
+                : applications.NotNeedingFollowUp(cutoff);
+        }
+
+        return applications;
     }
 
     private static IQueryable<JobApplication> Sort(IQueryable<JobApplication> applications, string sortBy, string sortDir)
