@@ -1,4 +1,5 @@
 using JobTracker.Application.Applications;
+using JobTracker.Application.Applications.Export;
 using JobTracker.Application.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,22 @@ public class ApplicationsController : ControllerBase
         [FromQuery] ApplicationListQuery query, CancellationToken cancellationToken)
     {
         return await _applicationsService.ListAsync(query, cancellationToken);
+    }
+
+    /// <summary>
+    /// Downloads every application matching the filters as CSV or Excel (format=csv|xlsx).
+    /// Same query string as the list, minus paging.
+    /// </summary>
+    [HttpGet("export")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK, "text/csv",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Export([FromQuery] ApplicationExportQuery query, CancellationToken cancellationToken)
+    {
+        ExportFile file = await _applicationsService.ExportAsync(query, cancellationToken);
+
+        // File(...) sets Content-Disposition: attachment; filename=..., so the browser downloads it.
+        return File(file.Content, file.ContentType, file.FileName);
     }
 
     // ":guid" is a route constraint: /api/applications/abc does not even match this action (404).

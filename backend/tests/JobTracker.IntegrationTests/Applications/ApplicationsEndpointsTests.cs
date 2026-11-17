@@ -325,7 +325,7 @@ public class ApplicationsEndpointsTests
     [InlineData("pageSize=101", "pageSize")]
     [InlineData("sortBy=passwordHash", "sortBy")]
     [InlineData("sortDir=sideways", "sortDir")]
-    [InlineData("status=NotAStatus", "Status")] // Rejected earlier, by model binding, which names it after the C# property.
+    [InlineData("status=NotAStatus", "status")] // Rejected earlier, by model binding; the error factory camelCases it too.
     public async Task List_with_invalid_query_returns_400_naming_the_parameter(string queryString, string expectedKey)
     {
         HttpClient client = await _factory.CreateAuthenticatedClientAsync();
