@@ -76,6 +76,17 @@ export function toApiQuery(params: ApplicationListParams): string {
   return query.toString()
 }
 
+export type ExportFormat = 'csv' | 'xlsx'
+
+/** Query string for GET /api/applications/export: the same filters and order as the list, without paging. */
+export function toExportQuery(params: ApplicationListParams, format: ExportFormat): string {
+  const query = new URLSearchParams(toApiQuery(params))
+  query.delete('page')
+  query.delete('pageSize')
+  query.set('format', format)
+  return query.toString()
+}
+
 /** Clicking the active column flips the direction; a new column starts with its natural order. */
 export function nextSort(current: ApplicationListParams, field: SortField): { sortBy: SortField; sortDir: SortDirection } {
   if (current.sortBy === field) {

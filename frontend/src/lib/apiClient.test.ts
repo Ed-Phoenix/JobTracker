@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it, vi } from 'vitest'
 import { authResponse, server } from '@/test/server'
-import { api, ApiError, setAccessToken, setSessionExpiredHandler } from './apiClient'
+import { api, ApiError, fileNameFrom, setAccessToken, setSessionExpiredHandler } from './apiClient'
 
 describe('apiClient', () => {
   it('sends the access token as a Bearer header', async () => {
@@ -101,5 +101,20 @@ describe('apiClient', () => {
     server.use(http.delete('*/api/things/1', () => new HttpResponse(null, { status: 204 })))
 
     await expect(api.delete('/things/1')).resolves.toBeUndefined()
+  })
+})
+
+describe('fileNameFrom', () => {
+  it('prefers the UTF-8 encoded name, which supports accents', () => {
+    expect(fileNameFrom("attachment; filename=reporte.csv; filename*=UTF-8''reporte-ma%C3%B1ana.csv")).toBe('reporte-mañana.csv')
+  })
+
+  it('falls back to the plain name, quoted or not', () => {
+    expect(fileNameFrom('attachment; filename="export.xlsx"')).toBe('export.xlsx')
+    expect(fileNameFrom('attachment; filename=export.csv')).toBe('export.csv')
+  })
+
+  it('returns null without a header', () => {
+    expect(fileNameFrom(null)).toBeNull()
   })
 })
