@@ -11,6 +11,7 @@ export const chartColors = {
   barHover: 'var(--color-chart-bar-hover)', // the hovered bar lightens slightly to show it responds
   grid: 'var(--color-line)', // hairline, recessive
   axisText: 'var(--color-fg-subtle)', // text token, never the data color
+  valueText: 'var(--color-fg-soft)', // direct labels on the bars: text ink, a step stronger than the axis
   cursor: 'var(--color-chart-cursor)', // wash behind the hovered band
 } as const
 
