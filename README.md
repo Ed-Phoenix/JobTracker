@@ -6,6 +6,8 @@ A full-stack web app to keep track of job applications: where you applied, how e
 
 Built with **ASP.NET Core 10**, **PostgreSQL** and **React + TypeScript**, with JWT authentication, automated tests on both ends and a one-command Docker setup.
 
+**Live demo: [jobtracker-edphoenix.vercel.app](https://jobtracker-edphoenix.vercel.app)**. Create an account to try it; your data is visible only to you. The API runs on a free tier that sleeps when idle, so the first request after a while can take up to a minute. API reference: [/scalar](https://jobtracker-edphoenix.vercel.app/scalar).
+
 ![Dashboard](docs/screenshots/dashboard.png)
 
 ## Features
@@ -96,7 +98,7 @@ To stop everything run `docker compose down`, or `docker compose down --volumes`
 
 ## Deployment
 
-The demo runs on free tiers: **Vercel** (frontend, proxying `/api`), **Render** (API container) and **Neon** (PostgreSQL). The step-by-step guide and the reasoning behind it are in [docs/deployment.md](docs/deployment.md).
+The [live demo](https://jobtracker-edphoenix.vercel.app) runs on free tiers: **Vercel** (frontend, proxying `/api`), **Render** (API container) and **Neon** (PostgreSQL). The step-by-step guide and the reasoning behind it are in [docs/deployment.md](docs/deployment.md).
 
 ## Local development
 
