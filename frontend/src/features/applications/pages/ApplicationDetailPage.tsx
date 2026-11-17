@@ -40,17 +40,17 @@ export function ApplicationDetailPage() {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold text-slate-900">{application.position}</h1>
+            <h1 className="text-2xl font-semibold text-fg">{application.position}</h1>
             <StatusBadge status={application.status} />
           </div>
-          <p className="mt-1 text-slate-600">{application.company}</p>
+          <p className="mt-1 text-fg-muted">{application.company}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button onClick={() => setOpenDialog('status')}>Change status</Button>
           <Link to={`/applications/${application.id}/edit`} className={buttonClasses('secondary')}>
             Edit
           </Link>
-          <Button variant="ghost" className="text-red-700 hover:bg-red-50" onClick={() => setOpenDialog('delete')}>
+          <Button variant="ghost" className="text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/50" onClick={() => setOpenDialog('delete')}>
             Delete
           </Button>
         </div>
@@ -80,7 +80,7 @@ export function ApplicationDetailPage() {
                     href={application.jobUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="break-all text-brand-700 hover:underline"
+                    className="break-all text-accent hover:underline"
                   >
                     {application.jobUrl}
                     <span className="sr-only"> (opens in a new tab)</span>
@@ -94,16 +94,16 @@ export function ApplicationDetailPage() {
 
           <Card title="Notes">
             {application.notes ? (
-              <p className="text-sm whitespace-pre-line text-slate-700">{application.notes}</p>
+              <p className="text-sm whitespace-pre-line text-fg-soft">{application.notes}</p>
             ) : (
-              <p className="text-sm text-slate-500">No notes yet.</p>
+              <p className="text-sm text-fg-subtle">No notes yet.</p>
             )}
           </Card>
         </div>
 
         <Card title="Status history">
           <StatusHistory history={application.statusHistory} />
-          <p className="mt-6 text-xs text-slate-500">
+          <p className="mt-6 text-xs text-fg-subtle">
             Created {formatDateTime(application.createdAt)} · Updated {formatDateTime(application.updatedAt)}
           </p>
         </Card>
@@ -119,8 +119,8 @@ export function ApplicationDetailPage() {
 
 function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="rounded-2xl bg-white p-6 ring-1 ring-slate-200">
-      <h2 className="mb-4 text-base font-semibold text-slate-900">{title}</h2>
+    <section className="rounded-2xl bg-surface p-6 ring-1 ring-line">
+      <h2 className="mb-4 text-base font-semibold text-fg">{title}</h2>
       {children}
     </section>
   )
@@ -129,8 +129,8 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
 function Detail({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
   return (
     <div className={className}>
-      <dt className="text-xs font-medium tracking-wide text-slate-500 uppercase">{label}</dt>
-      <dd className="mt-1 text-sm text-slate-900">{children}</dd>
+      <dt className="text-xs font-medium tracking-wide text-fg-subtle uppercase">{label}</dt>
+      <dd className="mt-1 text-sm text-fg">{children}</dd>
     </div>
   )
 }

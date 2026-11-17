@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router'
 import { Logo } from '@/components/Logo'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/features/auth/AuthContext'
 import { cn } from '@/lib/cn'
@@ -26,12 +27,12 @@ export function AppLayout() {
       {/* First focusable element: lets keyboard users jump over the navigation. */}
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:shadow"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:shadow"
       >
         Skip to content
       </a>
 
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
           <Link to="/" aria-label="JobTracker home">
             <Logo />
@@ -47,7 +48,7 @@ export function AppLayout() {
                 className={({ isActive }) =>
                   cn(
                     'rounded-lg px-3 py-2 text-sm font-medium',
-                    isActive ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                    isActive ? 'bg-accent-soft text-accent' : 'text-fg-muted hover:bg-surface-muted hover:text-fg',
                   )
                 }
               >
@@ -57,7 +58,8 @@ export function AppLayout() {
           </nav>
 
           <div className="ml-auto flex items-center gap-3">
-            <span className="hidden text-sm text-slate-600 sm:inline">{user?.fullName}</span>
+            <span className="hidden text-sm text-fg-muted sm:inline">{user?.fullName}</span>
+            <ThemeToggle />
             <Button variant="secondary" onClick={handleLogout} loading={signingOut}>
               Sign out
             </Button>

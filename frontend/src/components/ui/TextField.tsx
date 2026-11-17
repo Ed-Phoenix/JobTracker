@@ -21,7 +21,7 @@ export function TextField({ label, error, hint, className, id, ...props }: TextF
 
   return (
     <div className={className}>
-      <label htmlFor={inputId} className="mb-1.5 block text-sm font-medium text-slate-700">
+      <label htmlFor={inputId} className="mb-1.5 block text-sm font-medium text-fg-soft">
         {label}
       </label>
       <input

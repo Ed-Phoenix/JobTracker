@@ -36,7 +36,7 @@ export function DeleteApplicationDialog({ application, onClose }: DeleteApplicat
       title="Delete this application?"
       description={
         <>
-          The application to <strong className="font-medium text-slate-900">{application.company}</strong> and its
+          The application to <strong className="font-medium text-fg">{application.company}</strong> and its
           status history will be removed. This cannot be undone.
         </>
       }

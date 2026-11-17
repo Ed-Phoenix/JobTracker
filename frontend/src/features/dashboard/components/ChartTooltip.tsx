@@ -21,11 +21,11 @@ export function ChartTooltip({ active, payload, label, formatLabel, unit }: Char
   const value = Number(payload[0].value ?? 0)
 
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-sm shadow-lg ring-1 ring-slate-200">
-      <p className="font-semibold text-slate-900">
+    <div className="rounded-lg bg-surface px-3 py-2 text-sm shadow-lg ring-1 ring-line">
+      <p className="font-semibold text-fg">
         {value} {value === 1 ? unit.replace(/s$/, '') : unit}
       </p>
-      <p className="text-slate-600">{formatLabel(String(label ?? ''))}</p>
+      <p className="text-fg-muted">{formatLabel(String(label ?? ''))}</p>
     </div>
   )
 }

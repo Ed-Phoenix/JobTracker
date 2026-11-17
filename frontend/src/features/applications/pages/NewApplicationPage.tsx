@@ -22,7 +22,7 @@ export function NewApplicationPage() {
   return (
     <section className="mx-auto max-w-3xl space-y-6">
       <BackLink to="/applications">All applications</BackLink>
-      <h1 className="text-2xl font-semibold text-slate-900">New application</h1>
+      <h1 className="text-2xl font-semibold text-fg">New application</h1>
       <ApplicationForm
         defaultValues={emptyFormValues()}
         submitLabel="Save application"

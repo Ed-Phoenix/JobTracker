@@ -69,14 +69,14 @@ export function SettingsPage() {
   return (
     <section className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Settings</h1>
-        <p className="mt-1 text-sm text-slate-600">Your profile and how JobTracker reminds you to follow up.</p>
+        <h1 className="text-2xl font-semibold text-fg">Settings</h1>
+        <p className="mt-1 text-sm text-fg-muted">Your profile and how JobTracker reminds you to follow up.</p>
       </div>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
         noValidate
-        className="space-y-5 rounded-2xl bg-white p-6 ring-1 ring-slate-200"
+        className="space-y-5 rounded-2xl bg-surface p-6 ring-1 ring-line"
       >
         {formError && <Alert>{formError}</Alert>}
 
@@ -93,7 +93,7 @@ export function SettingsPage() {
           {...register('followUpDays', { valueAsNumber: true })}
         />
 
-        <div className="flex justify-end border-t border-slate-100 pt-5">
+        <div className="flex justify-end border-t border-line-soft pt-5">
           <Button type="submit" loading={isSubmitting} disabled={!isDirty}>
             Save settings
           </Button>

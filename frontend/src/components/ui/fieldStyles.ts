@@ -3,8 +3,8 @@ import { cn } from '@/lib/cn'
 /** Shared look of text inputs, selects and textareas. */
 export function controlClasses(hasError: boolean, className?: string): string {
   return cn(
-    'block w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 shadow-xs placeholder:text-slate-400',
-    hasError ? 'border-red-500' : 'border-slate-300',
+    'block w-full rounded-lg border bg-surface px-3 py-2 text-sm text-fg shadow-xs placeholder:text-fg-faint',
+    hasError ? 'border-red-500 dark:border-red-400' : 'border-line-strong',
     className,
   )
 }

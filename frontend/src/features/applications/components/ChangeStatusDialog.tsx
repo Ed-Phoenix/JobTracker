@@ -50,7 +50,7 @@ export function ChangeStatusDialog({ application, onClose }: ChangeStatusDialogP
       description={
         <>
           {application.position} at {application.company}. Currently{' '}
-          <strong className="font-medium text-slate-900">{statusLabels[application.status]}</strong>.
+          <strong className="font-medium text-fg">{statusLabels[application.status]}</strong>.
         </>
       }
       onClose={onClose}

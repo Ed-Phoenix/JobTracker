@@ -26,7 +26,7 @@ export function Spinner({ className, label = 'Loading' }: SpinnerProps) {
 /** Centered spinner for a whole page or section while its data loads. */
 export function PageSpinner({ label = 'Loading' }: { label?: string }) {
   return (
-    <div className="flex min-h-[40vh] items-center justify-center text-brand-600">
+    <div className="flex min-h-[40vh] items-center justify-center text-accent">
       <Spinner className="size-8" label={label} />
     </div>
   )

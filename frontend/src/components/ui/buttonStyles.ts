@@ -4,9 +4,9 @@ export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
 const variants: Record<ButtonVariant, string> = {
   primary: 'bg-brand-600 text-white hover:bg-brand-700 disabled:bg-brand-600/60',
-  secondary: 'bg-white text-slate-800 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 disabled:text-slate-400',
-  ghost: 'text-slate-700 hover:bg-slate-100 disabled:text-slate-400',
-  danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-600/60',
+  secondary: 'bg-surface text-fg ring-1 ring-inset ring-line-strong hover:bg-surface-sunken disabled:text-fg-faint',
+  ghost: 'text-fg-soft hover:bg-surface-muted disabled:text-fg-faint',
+  danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-600/60 dark:hover:bg-red-500',
 }
 
 /**

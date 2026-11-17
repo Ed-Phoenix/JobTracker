@@ -24,7 +24,7 @@ export function ApplicationFilters({ params, onChange }: ApplicationFiltersProps
   const followUpId = useId()
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200 lg:flex-row lg:items-center">
+    <div className="flex flex-col gap-3 rounded-2xl bg-surface p-4 ring-1 ring-line lg:flex-row lg:items-center">
       <SearchBox
         value={params.search}
         // replace: typing should not add one browser-history entry per search.
@@ -51,11 +51,11 @@ export function ApplicationFilters({ params, onChange }: ApplicationFiltersProps
       </div>
 
       <div className="flex items-center justify-between gap-3 lg:justify-start">
-        <label htmlFor={followUpId} className="flex items-center gap-2 text-sm whitespace-nowrap text-slate-700">
+        <label htmlFor={followUpId} className="flex items-center gap-2 text-sm whitespace-nowrap text-fg-soft">
           <input
             id={followUpId}
             type="checkbox"
-            className="size-4 rounded border-slate-300 accent-brand-600"
+            className="size-4 rounded border-line-strong accent-brand-600"
             checked={params.needsFollowUp}
             onChange={(event) => onChange({ needsFollowUp: event.target.checked })}
           />

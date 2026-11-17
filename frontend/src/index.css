@@ -1,6 +1,12 @@
 /* Tailwind CSS v4: one import, no tailwind.config.js. Theme values are CSS variables. */
 @import 'tailwindcss';
 
+/*
+ * Dark mode is driven by a class on <html> (set before React starts by public/theme.js),
+ * not only by the OS setting, so the user can choose Light, Dark or System.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
@@ -8,10 +14,41 @@
   --color-brand-50: #eef2ff;
   --color-brand-100: #e0e7ff;
   --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
   --color-brand-500: #6366f1;
   --color-brand-600: #4f46e5;
   --color-brand-700: #4338ca;
   --color-brand-800: #3730a3;
+
+  /*
+   * Design tokens: colors named by their role, not their shade. Components write bg-surface or
+   * text-fg-muted, and only this file knows which shade that is in each theme. Utilities read
+   * these variables at runtime, so redefining them under .dark repaints the whole app.
+   */
+  --color-canvas: var(--color-slate-50); /* page background */
+  --color-surface: var(--color-white); /* cards, header, inputs */
+  --color-surface-sunken: var(--color-slate-50); /* table header, row hover, notes */
+  --color-surface-muted: var(--color-slate-100); /* ghost hover, neutral chips */
+
+  --color-fg: var(--color-slate-900); /* headings and body text */
+  --color-fg-soft: var(--color-slate-700);
+  --color-fg-muted: var(--color-slate-600); /* secondary text */
+  --color-fg-subtle: var(--color-slate-500); /* labels, captions */
+  --color-fg-faint: var(--color-slate-400); /* placeholders, disabled */
+
+  --color-line: var(--color-slate-200); /* borders and rings */
+  --color-line-soft: var(--color-slate-100); /* dividers inside a card */
+  --color-line-strong: var(--color-slate-300); /* input and secondary button outlines */
+
+  --color-accent: var(--color-brand-700); /* links, active navigation */
+  --color-accent-soft: var(--color-brand-50); /* active navigation background */
+  --color-accent-line: var(--color-brand-200);
+
+  /* Charts (read by Recharts through var(), see chartTheme.ts). */
+  --color-chart-bar: var(--color-brand-600);
+  --color-chart-bar-hover: var(--color-brand-500);
+  --color-chart-cursor: var(--color-brand-50);
 }
 
 @layer base {
@@ -19,12 +56,40 @@
     color-scheme: light;
   }
 
+  /* Same roles, dark shades. color-scheme also darkens native controls and scrollbars. */
+  html.dark {
+    color-scheme: dark;
+
+    --color-canvas: var(--color-slate-950);
+    --color-surface: var(--color-slate-900);
+    --color-surface-sunken: #172033; /* between slate-900 and slate-800 */
+    --color-surface-muted: var(--color-slate-800);
+
+    --color-fg: var(--color-slate-100);
+    --color-fg-soft: var(--color-slate-300);
+    --color-fg-muted: var(--color-slate-400);
+    --color-fg-subtle: var(--color-slate-400);
+    --color-fg-faint: var(--color-slate-500);
+
+    --color-line: var(--color-slate-700);
+    --color-line-soft: var(--color-slate-800);
+    --color-line-strong: var(--color-slate-600);
+
+    --color-accent: var(--color-brand-300);
+    --color-accent-soft: rgb(99 102 241 / 0.16);
+    --color-accent-line: var(--color-brand-800);
+
+    --color-chart-bar: var(--color-brand-500); /* validated: in the dark lightness band, >= 3:1 on slate-900 */
+    --color-chart-bar-hover: #7c7ff5;
+    --color-chart-cursor: rgb(99 102 241 / 0.14);
+  }
+
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply bg-canvas text-fg antialiased;
   }
 
   /* One consistent, clearly visible focus ring for keyboard users. */
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-brand-600;
+    @apply outline-2 outline-offset-2 outline-brand-600 dark:outline-brand-400;
   }
 }
