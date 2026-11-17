@@ -9,6 +9,7 @@ import { usePageTitle } from '@/lib/usePageTitle'
 import { useApplications } from '../api'
 import { ApplicationFilters } from '../components/ApplicationFilters'
 import { ApplicationsTable } from '../components/ApplicationsTable'
+import { ExportButtons } from '../components/ExportButtons'
 import { hasActiveFilters, nextSort, parseListParams, toSearchParams } from '../listParams'
 import type { ApplicationListParams } from '../types'
 
@@ -39,9 +40,12 @@ export function ApplicationsListPage() {
           <h1 className="text-2xl font-semibold text-slate-900">Applications</h1>
           <p className="mt-1 text-sm text-slate-600">Every job you applied to, and where each process stands.</p>
         </div>
-        <Link to="/applications/new" className={buttonClasses('primary')}>
-          New application
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <ExportButtons params={params} disabled={!data || data.totalCount === 0} />
+          <Link to="/applications/new" className={buttonClasses('primary')}>
+            New application
+          </Link>
+        </div>
       </div>
 
       <ApplicationFilters params={params} onChange={update} />

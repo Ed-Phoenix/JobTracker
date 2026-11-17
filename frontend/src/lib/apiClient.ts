@@ -96,12 +96,20 @@ interface RequestOptions {
   signal?: AbortSignal
   /** False for login/register: a 401 there means "wrong credentials", not "expired session". */
   retryOnUnauthorized?: boolean
+  /** "file" returns the body as a Blob plus the file name the server suggested. */
+  responseType?: 'json' | 'file'
+}
+
+/** A file returned by the API, e.g. an export. */
+export interface DownloadedFile {
+  blob: Blob
+  fileName: string
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, signal, retryOnUnauthorized = true } = options
+  const { method = 'GET', body, signal, retryOnUnauthorized = true, responseType = 'json' } = options
 
-  const headers: Record<string, string> = { Accept: 'application/json' }
+  const headers: Record<string, string> = { Accept: responseType === 'file' ? '*/*' : 'application/json' }
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
   }
@@ -135,7 +143,29 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     return undefined as T
   }
 
+  if (responseType === 'file') {
+    const file: DownloadedFile = {
+      blob: await response.blob(),
+      fileName: fileNameFrom(response.headers.get('Content-Disposition')) ?? 'download',
+    }
+    return file as T
+  }
+
   return (await response.json()) as T
+}
+
+/**
+ * Reads the name from Content-Disposition. ASP.NET Core sends both forms:
+ * filename="x.csv" and filename*=UTF-8''x.csv (the encoded one supports accents, so it wins).
+ */
+export function fileNameFrom(header: string | null): string | null {
+  if (!header) return null
+
+  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(header)
+  if (encoded) return decodeURIComponent(encoded[1])
+
+  const plain = /filename="?([^";]+)"?/i.exec(header)
+  return plain ? plain[1] : null
 }
 
 async function readProblem(response: Response): Promise<ProblemDetails | null> {
@@ -148,6 +178,11 @@ async function readProblem(response: Response): Promise<ProblemDetails | null> {
 
 export const api = {
   get: <T>(path: string, signal?: AbortSignal) => request<T>(path, { signal }),
+  /**
+   * GET that returns a file. A plain <a href> cannot be used for downloads here: the browser
+   * would not send the access token, which lives in memory and travels in the Authorization header.
+   */
+  download: (path: string) => request<DownloadedFile>(path, { responseType: 'file' }),
   post: <T>(path: string, body?: unknown, options?: Pick<RequestOptions, 'retryOnUnauthorized'>) =>
     request<T>(path, { method: 'POST', body, ...options }),
   put: <T>(path: string, body: unknown) => request<T>(path, { method: 'PUT', body }),

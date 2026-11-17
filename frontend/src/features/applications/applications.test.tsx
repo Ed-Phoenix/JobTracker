@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { makeDetail, makeSummary, paged } from '@/test/fixtures'
 import { renderApp } from '@/test/renderApp'
 import { server } from '@/test/server'
@@ -286,5 +286,63 @@ describe('application detail', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/applications'))
     expect(deleted).toBe(true)
     expect(await screen.findByText('Application to Acme deleted')).toBeInTheDocument()
+  })
+})
+
+describe('exporting applications', () => {
+  it('downloads the file with the current filters and the name the server suggests', async () => {
+    mockList(() => paged([acme]))
+    let exportQuery: URLSearchParams | undefined
+    server.use(
+      http.get('*/api/applications/export', ({ request }) => {
+        exportQuery = new URL(request.url).searchParams
+        return new HttpResponse('Company\r\nAcme\r\n', {
+          headers: {
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Content-Disposition': "attachment; filename=export.csv; filename*=UTF-8''jobtracker-applications-2026-11-17.csv",
+          },
+        })
+      }),
+    )
+    // jsdom has no object URLs and does not navigate on click: record what would be downloaded.
+    const createObjectURL = vi.fn(() => 'blob:export')
+    URL.createObjectURL = createObjectURL
+    URL.revokeObjectURL = vi.fn()
+    const downloads: string[] = []
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      downloads.push(this.download)
+    })
+
+    const { user } = renderApp('/applications?status=Offer&sortBy=company&sortDir=asc&page=2', { authenticated: true })
+    await screen.findByRole('table')
+    await user.click(screen.getByRole('button', { name: 'Export CSV' }))
+
+    await waitFor(() => expect(downloads).toEqual(['jobtracker-applications-2026-11-17.csv']))
+    expect(exportQuery?.get('format')).toBe('csv')
+    expect(exportQuery?.get('status')).toBe('Offer')
+    expect(exportQuery?.get('sortBy')).toBe('company')
+    // The export covers every page, not just the one on screen.
+    expect(exportQuery?.has('page')).toBe(false)
+    expect(createObjectURL).toHaveBeenCalledOnce()
+
+    click.mockRestore()
+  })
+
+  it('tells the user when the export fails', async () => {
+    mockList(() => paged([acme]))
+    server.use(http.get('*/api/applications/export', () => HttpResponse.json({ status: 500 }, { status: 500 })))
+    const { user } = renderApp('/applications', { authenticated: true })
+    await screen.findByRole('table')
+
+    await user.click(screen.getByRole('button', { name: 'Export Excel' }))
+
+    expect(await screen.findByText('Could not export your applications. Please try again.')).toBeInTheDocument()
+  })
+
+  it('disables the export when there is nothing to export', async () => {
+    renderApp('/applications', { authenticated: true })
+
+    await screen.findByText('No applications yet')
+    expect(screen.getByRole('button', { name: 'Export CSV' })).toBeDisabled()
   })
 })
